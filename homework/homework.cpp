@@ -1,6 +1,6 @@
 ﻿/*Дана квадратная матрица А
 порядка n и натуральное число m. По матрице построить вектор B
-размерности m, где B i равно следу матрицы А i , здесь i=1, 2, … , m.
+размерности m, где B[i] равно следу матрицы А^i , здесь i=1, 2, … , m.
 В программе описать следующие функции:
 - нахождение следа матрицы;
 - умножение двух матриц;	
@@ -11,9 +11,10 @@ using namespace std;
 int** memory(int n, int m);
 void fill(int** a, int n, int m);
 int trace(int** A, int n);
-int sp(int* arr1, int* arr2, int n);
-int** matrix_p(int** A, int** B, int n);
-int* vector(int** A, int n, int m);
+int* vector(int** A,int** temp, int n, int m);
+void fill_E(int** arr, int n);
+void freeMemory(int** arr, int n);
+int** matrix_p_fix(int** A, int** B, int n);
 
 int main()
 {
@@ -23,9 +24,11 @@ int main()
 	scanf_s("%d", &n);
 	int** A = memory(n, n);
 	fill(A, n, n);
+	int** temp = memory(n, n);
+	fill_E(temp, n);
 	printf("Введите m\n");
 	scanf_s("%d", &m);
-	int* ans = vector(A, n, m);
+	int* ans = vector(A, temp, n, m);
 	for (int i = 0; i < m; i++)
 	{
 		printf("%d ", ans[i]);
@@ -69,54 +72,60 @@ void fill(int** a, int n, int m)
 int trace(int** A, int n)
 {
 	int trace = 0;
-	for (int i = 0; i <= n; i++)
+	for (int i = 0; i < n; i++)
 	{
 		trace += A[i][i];
 	}
 	return trace;
 }
-//скалярное произверение
-int sp(int* arr1, int* arr2, int n)
-{
-	int sp = 0;
-	for (int i = 0; i < n; i++)
-	{
-		sp = sp + (arr1[i] * arr2[i]);
-	}
-	return sp;
-}
-//конвертер столбца в массив
-int* mas(int** A, int j, int n)
-{
-	int* ans = new int[n];
-	for (int i = 0; i < n; i++)
-	{
-		ans[i] = A[i][j];
-	}
-	return ans;
-}
-//умножение матриц
-int** matrix_p(int** A, int** B, int n)
-{
-	int** ans = memory(n, n);
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
-		{
-			int* temp = mas(B, j,n);
-			ans[i][j] = sp(A[i], temp, n);
-			delete temp;
-		}
-	}
-	return ans;
-}
 //построение вектора по матрице
-int* vector(int** A, int n, int m)
+int* vector(int** A,int** temp, int n, int m)
 {
 	int* ans = new int[m];
 	for (int i = 0; i < m; i++)
 	{
-		ans[i] = trace(A, i);
+		temp = matrix_p_fix(temp, A, n);
+		ans[i] = trace(temp, n);
 	}
 	return ans;
+}
+//заполнение единичной матрицы
+void fill_E(int** arr, int n)
+{
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+		{
+			arr[i][j] = 0;
+
+			if (i == j)
+				arr[i][j] = 1;
+		}
+}
+//Умножение матриц одной функцией
+int** matrix_p_fix(int** A, int** B, int n)
+{
+	int** temp_m = memory(n, n);
+	int temp = 0;
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++) 
+		{
+			for (int k = 0; k < n; k++)
+			{
+				temp += A[k][j] * B[i][k];
+			}
+			temp_m[i][j] = temp;
+			temp = 0;
+		}
+	}
+	freeMemory(A, n);
+	return temp_m;
+}
+//освобождение памяти
+void freeMemory(int** arr, int n)
+{
+	for (int i = 0; i < n; i++)
+		delete[] arr[i];
+
+	delete[] arr;
 }
